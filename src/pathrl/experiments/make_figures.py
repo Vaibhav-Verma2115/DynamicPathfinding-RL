@@ -355,11 +355,15 @@ def e6_figures(cfg, made, pending):
 
     # Grid size vs convergence time / episodes, best learning rate per algorithm and size
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.2))
-    for i, (algo, g) in enumerate(runs[runs["converged"]].groupby("algorithm")):
+    best = []
+    for algo, g in runs[runs["converged"]].groupby("algorithm"):
         best_lr = g.groupby("learning_rate")["converged_f"].count().idxmax()
-        gb = g[g["learning_rate"] == best_lr].assign(label=f"{names[algo]} (lr {best_lr})")
-        line_ci(axes[0], gb, "grid_size", "episodes_to_convergence", "label")
-        line_ci(axes[1], gb, "grid_size", "time_to_convergence_s", "label", logy=True)
+        best.append(g[g["learning_rate"] == best_lr].assign(label=f"{names[algo]} (lr {best_lr})"))
+    if best:
+        best = pd.concat(best)   # one call so each method gets its own colour and marker
+        line_ci(axes[0], best, "grid_size", "episodes_to_convergence", "label")
+        line_ci(axes[1], best, "grid_size", "time_to_convergence_s", "label", logy=True)
+        axes[0].set_ylim(bottom=0)   # t-intervals with n = 2 can extend below zero
     for ax, label in zip(axes, ["Episodes to convergence", "Training time to convergence (s)"]):
         ax.set_xlabel("Grid size N")
         ax.set_ylabel(label)

@@ -1,0 +1,168 @@
+{
+  "experiment": "e6_convergence",
+  "file": "e6_rl_runs.csv",
+  "rows": 198,
+  "git_commit": "f64899b-dirty",
+  "hardware": {
+    "timestamp_utc": "2026-11-03T05:58:43.555439+00:00",
+    "python": "3.11.16",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 18,
+    "numpy": "2.4.6",
+    "torch": "2.15.0",
+    "cuda_available": false,
+    "cuda_device": null,
+    "mps_available": true,
+    "torch_threads": 1
+  },
+  "config": {
+    "seed": 0,
+    "num_seeds": 5,
+    "env": {
+      "grid_size": 10,
+      "obstacle_density": 0.15,
+      "placement": "corners",
+      "min_start_goal_distance": 0.5,
+      "require_reachable": true,
+      "max_generation_attempts": 1000,
+      "dynamics": "static",
+      "dynamic_obstacle_density": 0.02,
+      "change_interval": 0,
+      "oscillation_amplitude": 2,
+      "slip_prob": 0.0,
+      "connectivity": 4,
+      "diagonal_cost": 1.4142135623730951,
+      "allow_corner_cutting": false,
+      "observation": "global",
+      "local_view": 7,
+      "max_steps_factor": 1.0,
+      "terminate_on_collision": false
+    },
+    "rewards": {
+      "step": -1.0,
+      "collision": -50.0,
+      "goal": 100.0
+    },
+    "rl": {
+      "gamma": 0.99,
+      "value_iteration": {
+        "theta": 1e-06,
+        "max_sweeps": 100000
+      },
+      "q_learning": {
+        "alpha": 0.1,
+        "episodes": 3000,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.05,
+        "epsilon_decay_fraction": 0.8
+      },
+      "dqn": {
+        "learning_rate": 0.0005,
+        "total_steps": 200000,
+        "buffer_size": 100000,
+        "batch_size": 64,
+        "learning_starts": 2000,
+        "train_frequency": 4,
+        "target_update_interval": 2000,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.05,
+        "epsilon_decay_fraction": 0.5,
+        "max_grad_norm": 10.0,
+        "reward_scale": 0.01,
+        "device": "auto"
+      },
+      "evaluation": {
+        "eval_interval": 100,
+        "eval_episodes": 20
+      },
+      "convergence": {
+        "success_threshold": 0.9,
+        "windows": 3,
+        "return_tolerance": 0.05
+      }
+    },
+    "paths": {
+      "results_dir": "outputs/results",
+      "figures_dir": "outputs/figures",
+      "models_dir": "outputs/models",
+      "logs_dir": "outputs/logs"
+    },
+    "e6": {
+      "map_offset": 50000,
+      "value_iteration": {
+        "grid_sizes": [
+          10,
+          20,
+          30,
+          50,
+          70,
+          100
+        ],
+        "densities": [
+          0.15,
+          0.3
+        ],
+        "slip_probs": [
+          0.0,
+          0.1,
+          0.2
+        ],
+        "seeds": 10,
+        "residual_curve_seeds": 1
+      },
+      "q_learning": {
+        "grid_sizes": [
+          10,
+          20,
+          30,
+          50,
+          70,
+          100
+        ],
+        "density": 0.15,
+        "learning_rates": [
+          0.01,
+          0.05,
+          0.1,
+          0.3,
+          0.5
+        ],
+        "seeds": 5,
+        "episodes": 3000,
+        "eval_interval": 25,
+        "eval_episodes": 1
+      },
+      "dqn": {
+        "algorithms": [
+          "dqn",
+          "double_dqn"
+        ],
+        "grid_sizes": [
+          10,
+          20
+        ],
+        "density": 0.15,
+        "learning_rates": [
+          0.0001,
+          0.0005,
+          0.001,
+          0.005
+        ],
+        "seeds": 3,
+        "total_steps": {
+          "10": 40000,
+          "20": 80000
+        },
+        "eval_interval": 10,
+        "eval_episodes": 1,
+        "device": "cpu",
+        "learning_starts": 1000,
+        "target_update_interval": 1000
+      }
+    }
+  },
+  "workers": 12,
+  "note": "train times measured with parallel workers, 1 torch thread each"
+}
