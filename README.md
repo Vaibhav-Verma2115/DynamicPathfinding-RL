@@ -25,7 +25,7 @@ The crossover point H* is where these two curves intersect, if they intersect at
 | 1 | Project setup, config, seeding, hardware disclosure | ✅ done |
 | 2 | GridWorld and visualization | ✅ done |
 | 3 | Environment tests and Gymnasium integration | ✅ done (merged with Stage 2) |
-| 4 | BFS, Dijkstra, A* | ⏳ pending |
+| 4 | BFS, Dijkstra, A* | ✅ done |
 | 5 | D* Lite | ⏳ pending |
 | 6 | Value Iteration, Q-Learning | ⏳ pending |
 | 7 | DQN, Double DQN | ⏳ pending |
@@ -91,6 +91,26 @@ obs, reward, terminated, truncated, info = env.step(3)   # 3 = RIGHT
 The environment rules (collisions, slip, rewards, moving obstacles, observations) are specified in
 [docs/methodology.md](docs/methodology.md).
 
+## Try the planners
+
+```bash
+# BFS, Dijkstra, A* (h=0, Manhattan, 1.5x Manhattan) on one map: counters, time, memory, figure
+python main.py plan --set env.grid_size=30 --seed 1
+```
+
+```python
+from pathrl.algorithms import make_planner
+from pathrl.environment import EnvConfig, generate_map
+from pathrl.utils.seeding import make_rng
+
+cfg = EnvConfig(grid_size=30)
+m = generate_map(cfg, make_rng(1))
+result = make_planner("astar", cfg, heuristic="manhattan").plan(m.walls, m.start, m.goal)
+print(result.cost, result.stats.expansions)
+```
+
+Complexity bounds are in [docs/complexity_analysis.md](docs/complexity_analysis.md).
+
 ## Repository layout
 
 ```
@@ -114,7 +134,7 @@ tests/                      pytest suite
 outputs/results/            raw CSV results (committed)
 outputs/figures/            generated figures (committed)
 outputs/models/             model checkpoints (ignored by git)
-docs/                       architecture.md, methodology.md, RESULTS.md
+docs/                       architecture.md, methodology.md, complexity_analysis.md, RESULTS.md
 ```
 
 ## Reproducibility rules

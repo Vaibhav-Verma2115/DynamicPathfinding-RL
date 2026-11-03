@@ -8,9 +8,9 @@ This document grows with each stage. Only the design decisions that have been im
 |---|---|---|
 | 1 Configuration manager | `pathrl.utils.config`, `configs/*.yaml`, `pathrl.environment.config` | done |
 | 2 GridWorld environment | `pathrl.environment` | done |
-| 3A Classical planning | `pathrl.algorithms.classical` | pending |
+| 3A Classical planning | `pathrl.algorithms.classical` | BFS, Dijkstra, A* done; D* Lite pending |
 | 3B Learning / model-based | `pathrl.algorithms.model_based`, `pathrl.algorithms.reinforcement_learning` | pending |
-| 4 Evaluation framework | `pathrl.evaluation` | pending |
+| 4 Evaluation framework | `pathrl.evaluation` | timing/memory (`profiling.py`) done |
 | 5 Analysis & visualization | `pathrl.analysis`, `pathrl.visualization` | grid drawing done |
 | 6 Dashboard & report | `pathrl.dashboard`, `docs/` | pending |
 
@@ -47,7 +47,22 @@ Behavioural rules (collisions, slip, obstacle movement, observations) are specif
 ## Hardware disclosure
 `pathrl.utils.hardware` records CPU, OS, library versions and CUDA/MPS availability alongside results.
 
-## Planned interfaces
-`Planner` / `LearnedPolicy` will give the evaluation harness one way to drive every method.
-For example, `update(changed_cells)` lets D* Lite repair its search, and `train()` is kept
-separate from `act()` so DQN training is never timed as inference.
+## Planner interface (`algorithms/base_planner.py`)
+```
+Planner.plan(occupancy, start, goal) -> PlanResult(path, cost, stats, expanded)
+Planner.update(changed_cells, occupancy)   # no-op for BFS/Dijkstra/A*; D* Lite repairs here
+Planner.reset()
+```
+- All planners search `GridGraph` (`algorithms/grid_graph.py`), which is built on the environment's
+  `attempt_move`. A test checks that planner neighbours equal the moves the environment allows.
+- `SearchStats` holds machine-independent counters: expansions, generated, pushes, pops,
+  max_frontier, states_touched.
+- `make_planner(name, env_cfg, **kwargs)` builds a planner with the experiment's movement rules.
+
+## Measurement (`evaluation/profiling.py`)
+`measure(fn)` takes the median wall time of several runs (GC disabled), then runs once more
+under tracemalloc for peak Python memory. These are separate runs because tracemalloc slows code down.
+
+## Planned
+`LearnedPolicy` (train / act) for RL in Stage 7, with `train()` kept separate from `act()`
+so training is never timed as inference.
