@@ -100,3 +100,19 @@ Channels: 0 = obstacles, 1 = agent, 2 = goal.
 **Information-assumption disclosure:** classical planners (BFS, Dijkstra, A*, D* Lite) are given the
 global occupancy map. Any comparison between a global planner and a `local` RL agent must be labelled
 as using different information. Neither mode exposes *future* obstacle positions.
+
+## 2. Convergence definitions (`analysis/convergence.py`)
+
+Each algorithm family has its own definition. They are deliberately not interchangeable.
+
+| Algorithm | Converged when | Reported as |
+|---|---|---|
+| Value Iteration | Bellman residual max\|V_{k+1} − V_k\| < θ (θ = 1e-6), over goal-connected cells | sweeps, seconds |
+| Q-Learning, DQN, Double DQN | W = 3 consecutive greedy evaluations each with success ≥ 0.9, and mean-return spread ≤ 5% of its magnitude | training episodes (and env steps, train seconds) at the *confirming* evaluation |
+| BFS / Dijkstra / A* | terminate exactly | not applicable |
+| D* Lite | queue empty or start consistent with top key ≥ key(start) | repair work (expansions), not convergence |
+
+- Greedy evaluations use no exploration and run every `eval_interval` training episodes on
+  `eval_episodes` episodes. Their time is recorded separately from training time.
+- Runs that never meet the criterion are reported as **non-convergent**, with their final success
+  rate. They are never dropped, and never assigned the training budget as a fake convergence point.

@@ -54,5 +54,18 @@ Admissibility and consistency are checked on an open grid by
   made mathematically equal keys compare unequal and stopped the search too early (found by
   `tests/test_dstar_lite.py`).
 
+## Value Iteration (`algorithms/model_based/value_iteration.py`)
+- One synchronous sweep costs O(S · A · K): S states, A actions, K ≤ 3 slip outcomes. Vectorised with NumPy.
+- The Bellman operator is a γ-contraction: ‖V_{k+1} − V_k‖∞ ≤ γ ‖V_k − V_{k−1}‖∞ (tested).
+  Values must first propagate along the longest shortest path (roughly the path length in
+  sweeps), then the residual shrinks geometrically. Sweeps to reach θ grow with path length
+  and with log(1/θ)/log(1/γ).
+- Only goal-connected cells are updated. Walled-off pockets would otherwise dominate the sweep count.
+
+## Q-Learning (`algorithms/reinforcement_learning/q_learning.py`)
+- O(A) time per update, O(S · A) memory (N² × 4 floats; 40,000 entries at 100 × 100).
+- Sample complexity (episodes needed) has no simple closed form here. It depends on
+  exploration, α, γ and map difficulty, so E6 measures it empirically.
+
 ## Pending
-Value Iteration and Q-Learning (Stage 6), DQN/Double DQN (Stage 7).
+DQN/Double DQN (Stage 7).

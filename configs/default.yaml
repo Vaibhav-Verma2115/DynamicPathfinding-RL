@@ -37,6 +37,38 @@ rewards:
   collision: -50.0
   goal: 100.0
 
+rl:
+  gamma: 0.99
+  value_iteration:
+    theta: 1.0e-6            # stop when the Bellman residual max|V_k+1 - V_k| < theta
+    max_sweeps: 100000
+  q_learning:
+    alpha: 0.1               # learning rate
+    episodes: 3000
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_fraction: 0.8   # epsilon decays linearly over this fraction of training
+  dqn:
+    learning_rate: 0.0005
+    total_steps: 200000
+    buffer_size: 100000
+    batch_size: 64
+    learning_starts: 2000
+    train_frequency: 4       # gradient step every k environment steps
+    target_update_interval: 2000   # hard copy online -> target every k environment steps
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_fraction: 0.5
+    max_grad_norm: 10.0
+    device: cpu              # cpu | mps | cuda (wall-clock results must state which)
+  evaluation:
+    eval_interval: 100       # evaluate the greedy policy every k training episodes
+    eval_episodes: 20
+  convergence:
+    success_threshold: 0.9   # greedy success rate needed in each window
+    windows: 3               # ... for this many consecutive evaluations
+    return_tolerance: 0.05   # ... with mean-return spread <= 5% of its magnitude
+
 paths:
   results_dir: outputs/results
   figures_dir: outputs/figures
