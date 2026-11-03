@@ -110,6 +110,7 @@ def run(cfg: dict, workers: int = 1) -> str:
         tab = tr[[c for c in cols if c in tr.columns]].copy()
         tab["train_time_s"] = tab["train_time_s"].map(_fmt)
         out += [_table(tab), "", "`final_success_rate` = greedy success on 50 held-out validation maps at the end of training.",
+                "DQN rows trained concurrently with E1/E2/E6 (CPU contention); Double DQN rows trained alone. See methodology §5.",
                 "", _fig("train_dqn_validation_curves"), ""]
 
     # E3
@@ -139,7 +140,7 @@ def run(cfg: dict, workers: int = 1) -> str:
         if inf is not None:
             out += ["### Per-decision cost vs grid size", "",
                     "CNN forward-pass times use untrained networks of the DQN architecture. They measure inference *cost* only.",
-                    "No DQN was trained at N > 10, so success at those sizes is **pending**.", "",
+                    "No generalist DQN was trained at N > 10, so policy success at those sizes is **pending**.", "",
                     _table(inf.assign(infer_ms=(inf["infer_time_per_step_s"] * 1e3).map(_fmt))[["grid_size", "parameters", "infer_ms"]]),
                     "", _fig("e3_per_decision_cost_vs_grid"), ""]
 

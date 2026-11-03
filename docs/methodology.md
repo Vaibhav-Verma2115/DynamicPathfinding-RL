@@ -132,3 +132,68 @@ Each algorithm family has its own definition. They are deliberately not intercha
   planners are measured on the same processor.
 - Wall-clock times use `time.perf_counter`. tracemalloc measures Python-heap allocations only and
   misses most PyTorch tensor memory. DQN memory is reported as parameter + replay-buffer bytes.
+
+## 4. Generalist DQN: training protocol and model selection
+
+**Data separation.** All map sets come from disjoint seed families derived from the master seed:
+training maps (offset 1000), validation maps (3000), E3 test maps (20000), E4 test maps (30000),
+E5 test maps (40000), E1/E2 maps (10000), E6 maps (50000). E5 checks and reports that train/test
+overlap is 0.
+
+**Training distribution.** 1,000 random 10 × 10 maps (density 0.15, random start/goal at Manhattan
+distance ≥ 5). Each episode samples one map and one condition from {static, random-walk with change
+interval 1/2/5/10/20} × slip {0, 0.1, 0.2}. One network per (algorithm, training seed). The
+networks are then evaluated zero-shot in E3 (dynamic), E4 (slip) and E5 (unseen static maps).
+
+**Model selection (on validation maps only, never on test maps).** The first configuration
+(global 10 × 10 view) did not learn to generalise. The process and evidence are recorded in
+`outputs/results/model_selection/`:
+
+| Pilot (1 seed, DQN) | Steps | Final greedy validation success |
+|---|---|---|
+| Global view, rewards unscaled | 60k | 0.02 (Stage 9 log) |
+| Global view, reward scale 0.01 | 60k | 0.04 (Stage 9 log) |
+| Global view, reward scale 0.01 | 150k | `pilot_global` CSV |
+| Local 7 × 7 view + goal-direction marker, reward scale 0.01 | 150k | `pilot_local` CSV |
+
+The same DQN solved a single fixed 10 × 10 map optimally within about 19k steps (Stage 9 check),
+so the failure was in generalisation across maps, not in the implementation. The local egocentric
+view was selected, and the budget was raised to 500k steps with ε decaying over the first 100k.
+
+**Consequence for fairness.** The selected DQN/Double DQN agents see only a 7 × 7 window plus the goal
+direction, while the planners are given the global map. Every comparison involving them is
+labelled with this difference. The RL agents have *less* information, not more.
+
+**Greedy vs. exploratory performance.** A deterministic, memoryless policy with a local view can
+oscillate between two cells forever (perceptual aliasing). Success during training (ε = 0.05) was
+far higher than greedy validation success in the pilot. All reported RL results use the greedy
+policy (ε = 0), as the protocol requires.
+
+## 5. Experiment matrix (as run)
+
+| Exp. | Conditions | Replication unit | n |
+|---|---|---|---|
+| E1 | N ∈ {10,20,30,50,70,100} × density {0.15, 0.30} × 4 planners | map | 30 |
+| E2 | same maps × A* {h=0, Manhattan, 1.5 × Manhattan} | map | 30 |
+| E3 | classical N ∈ {10,20,30,50}, RL N = 10; change interval {20,10,5,2,1} | map (1 episode each, shared episode seed) | 30 maps; RL × 3 training seeds |
+| E4 | N ∈ {10,20} × slip {0,0.1,0.2}; RL at N = 10 | map (20 shared episode seeds each) | 30 |
+| E5 | 500 unseen + 500 training maps | training seed | 3 per algorithm |
+| E6 VI | N ∈ all 6 × density × slip | map | 10 |
+| E6 Q-Learning | N ∈ all 6 × α ∈ {0.01,0.05,0.1,0.3,0.5} | map + agent seed | 5 |
+| E6 DQN/DDQN | N ∈ {10,20} × lr ∈ {1e-4,5e-4,1e-3,5e-3} | map + agent seed | 3 |
+
+Not run (compute budget): DQN/Double DQN at N ≥ 30 (E3, E5, E6), and DQN with the global
+observation as a final model. These are reported as **pending**.
+
+**Concurrency disclosure.** E1 and E2 ran serially in one process, while the GPU training job ran
+in another process (each process mostly uses one core of the 18-core CPU). E6 RL runs used 12
+parallel worker processes with 1 torch thread each, so their wall-clock training times include
+contention and are comparable only within E6. E3 ran alone, serially, with 1 torch thread.
+
+**Training-time confound (train_dqn).** The three DQN generalists (seeds 0-2) trained while E1, E2 and
+the 12-worker E6 job were running, and took 982-1300 s. The three Double DQN generalists trained
+after E6 had finished, with the machine otherwise idle, and took 531-532 s. The two algorithms differ
+only in the target computation, so the roughly 2x gap is **CPU contention, not an algorithmic
+difference**. The Double DQN times are the uncontended estimate of C_train. No conclusion in the
+report depends on this: H* is "never" for both algorithms (see report §4.3). E4 used 8 workers and
+E5 ran serially, both after training had finished; neither reports training time.

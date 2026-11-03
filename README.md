@@ -9,33 +9,34 @@ A reproducible experimental framework that asks a narrow, testable question:
 
 We do **not** assume RL is better. Each method is measured on identical maps,
 seeds and dynamics, and the conditions under which each one wins are reported.
-Over a horizon of H environment changes, the two costs are:
 
 ```
 C_RL(H)       = C_training + H · C_inference
-C_planning(H) = C_initial  + Σ_{i=1..H} C_repair(i)
+C_planning(H) = C_initial  + Σ_{i=1..H} C_repair(i)        crossover H*: C_RL(H*) = C_planning(H*)
 ```
 
-The crossover point H* is where these two curves intersect, if they intersect at all.
+H* is a *computational* break-even point. Success rate and path quality are always reported beside it.
+
+- **Results (numbers):** [docs/RESULTS.md](docs/RESULTS.md), generated from the CSVs
+- **Report (interpretation, limitations):** [docs/report.md](docs/report.md)
+- **Methodology / rules / information assumptions:** [docs/methodology.md](docs/methodology.md)
+- **Architecture:** [docs/architecture.md](docs/architecture.md) · **Complexity:** [docs/complexity_analysis.md](docs/complexity_analysis.md)
 
 ## Status
 
 | Stage | Module | Status |
 |---|---|---|
-| 1 | Project setup, config, seeding, hardware disclosure | ✅ done |
-| 2 | GridWorld and visualization | ✅ done |
-| 3 | Environment tests and Gymnasium integration | ✅ done (merged with Stage 2) |
-| 4 | BFS, Dijkstra, A* | ✅ done |
-| 5 | D* Lite | ✅ done |
-| 6 | Value Iteration, Q-Learning | ✅ done |
-| 7 | DQN, Double DQN | ✅ done |
-| 8 | Evaluation and profiling framework | ✅ done |
-| 9 | Experiments E1–E6 | ⏳ pending |
-| 10 | Statistics and crossover analysis | ⏳ pending |
-| 11 | Streamlit dashboard | ⏳ pending |
-| 12 | Final documentation and report | ⏳ pending |
-
-**No experimental results exist yet.** See [docs/RESULTS.md](docs/RESULTS.md).
+| 1 | Project setup, config, seeding, hardware disclosure | ✅ |
+| 2–3 | GridWorld (static / random-walk / oscillating obstacles, slip, 4/8-conn, global/local obs), Gymnasium | ✅ |
+| 4 | BFS, Dijkstra, A* | ✅ |
+| 5 | D* Lite (incremental repair) | ✅ |
+| 6 | Value Iteration, Q-Learning, convergence definitions | ✅ |
+| 7 | DQN, Double DQN (replay, target net, Huber, Adam, checkpoints) | ✅ |
+| 8 | Evaluation harness, provenance, statistics | ✅ |
+| 9 | Experiments E1–E6 | ✅ run (see RESULTS.md for what is pending) |
+| 10 | Statistics, crossover analysis, figures | ✅ |
+| 11 | Streamlit dashboard | ✅ |
+| 12 | Documentation and report | ✅ |
 
 ## Setup
 
@@ -47,101 +48,80 @@ source .venv/bin/activate
 uv pip install -r requirements.txt -e .
 ```
 
-Or with plain pip:
+Or with plain pip: `python3.11 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt -e .`
+
+`requirements-lock.txt` pins the exact versions used for the reported results.
+
+## Usage
 
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt -e .
+pytest                                   # full test suite (~160 tests)
+pytest -m "not slow"                     # skip the end-to-end DQN learning tests
+
+python main.py hardware                  # hardware/software snapshot
+python main.py demo --config configs/dynamic.yaml --steps 80 --seed 4   # random policy in the env
+python main.py plan --set env.grid_size=30 --seed 1                     # BFS/Dijkstra/A* on one map
+
+# Experiments (raw CSV + .meta.json written to outputs/results/<experiment>/)
+python main.py experiment e1             # static scaling            (serial: clean timings)
+python main.py experiment e2             # heuristic quality
+python main.py experiment train_dqn      # generalist DQN/Double DQN (GPU if available), needed by E3-E5
+python main.py experiment e3             # dynamic obstacles + crossover data (serial)
+python main.py experiment e4 --workers 8 # stochastic transitions
+python main.py experiment e5             # zero-shot generalization
+python main.py experiment e6 --workers 12  # convergence + learning-rate sensitivity
+
+python main.py figures                   # summary tables (outputs/results/summary) + figures (outputs/figures)
+python main.py report                    # regenerate docs/RESULTS.md from the summary tables
+
+streamlit run src/pathrl/dashboard/app.py   # interactive dashboard
 ```
 
-`requirements.txt` lists compatible version ranges. `requirements-lock.txt` pins the
-exact versions used to produce the reported results. Install from it to reproduce them exactly:
-`uv pip install -r requirements-lock.txt -e .`
-
-## Verify the installation
-
-```bash
-pytest                              # run the test suite
-python main.py hardware             # print the hardware/software snapshot
-```
-
-## Try the environment
-
-```bash
-# 10x10 random-walking obstacles, random policy, figure saved to outputs/figures/
-python main.py demo --config configs/dynamic.yaml --steps 80 --seed 4
-
-# 20x20 oscillating corridors, obstacles move every step
-python main.py demo --config configs/dynamic.yaml \
-    --set env.dynamics=oscillating_corridor env.change_interval=1 env.grid_size=20 --steps 150 --seed 2
-```
-
-In Python, use the Gymnasium API:
-
-```python
-import gymnasium as gym
-from pathrl.environment import EnvConfig
-
-env = gym.make("pathrl/GridWorld-v0", config=EnvConfig(grid_size=20, slip_prob=0.1), map_seed=0)
-obs, info = env.reset(seed=0)            # obs: float32 (3, 20, 20) = obstacles, agent, goal
-obs, reward, terminated, truncated, info = env.step(3)   # 3 = RIGHT
-```
-
-The environment rules (collisions, slip, rewards, moving obstacles, observations) are specified in
-[docs/methodology.md](docs/methodology.md).
-
-## Try the planners
-
-```bash
-# BFS, Dijkstra, A* (h=0, Manhattan, 1.5x Manhattan) on one map: counters, time, memory, figure
-python main.py plan --set env.grid_size=30 --seed 1
-```
-
-```python
-from pathrl.algorithms import make_planner
-from pathrl.environment import EnvConfig, generate_map
-from pathrl.utils.seeding import make_rng
-
-cfg = EnvConfig(grid_size=30)
-m = generate_map(cfg, make_rng(1))
-result = make_planner("astar", cfg, heuristic="manhattan").plan(m.walls, m.start, m.goal)
-print(result.cost, result.stats.expansions)
-```
-
-Complexity bounds are in [docs/complexity_analysis.md](docs/complexity_analysis.md).
+Any config value can be overridden, e.g. `python main.py experiment e1 --set num_seeds=5 'e1.grid_sizes=[10,20]'`.
+Quote list values in zsh.
 
 ## Repository layout
 
 ```
-main.py                     command-line entry point (hardware, demo, ...)
+main.py                     command-line entry point
 configs/
-  default.yaml              base parameters (grid, dynamics, rewards, paths)
+  default.yaml              all base parameters (env, rewards, RL hyperparameters, convergence, paths)
   static.yaml, dynamic.yaml, stochastic.yaml   scenario presets
-  experiments/*.yaml        per-experiment overrides (E1–E6)
+  experiments/*.yaml        per-experiment overrides (train_dqn, E1-E6)
 src/pathrl/
-  environment/              GridWorld, map generation, dynamics, rewards, obstacles
-  algorithms/classical/     BFS, Dijkstra, A*, D* Lite
-  algorithms/model_based/   Value Iteration
-  algorithms/reinforcement_learning/  Q-Learning, DQN, Double DQN
-  evaluation/               shared harness, metrics, profiling
-  analysis/                 statistics (means, 95% CI), crossover analysis
-  visualization/            grid rendering and publication figures
-  experiments/              E1–E6 entry points
-  dashboard/                Streamlit app
+  environment/              GridWorld env, map generation, dynamics (slip/collisions), rewards, obstacles
+  algorithms/
+    grid_graph.py           neighbour/cost function shared by all planners (built on env rules)
+    base_planner.py         Planner interface + machine-independent counters
+    base_policy.py          LearnedPolicy interface (act never learns) + TrainingLog
+    classical/              BFS, Dijkstra, A*, D* Lite
+    model_based/            Value Iteration
+    reinforcement_learning/ Q-Learning, CNN Q-network, replay buffer, DQN, Double DQN
+  evaluation/               profiling, rollouts, planner navigation, scenario sampling, results I/O
+  analysis/                 statistics (t-CI, Wilson), convergence criteria, crossover
+  visualization/            grid drawing, plotting helpers, demos
+  experiments/              train_dqn, E1-E6, make_figures, make_report
+  dashboard/app.py          Streamlit app
   utils/                    config loading, seeding, hardware disclosure
 tests/                      pytest suite
-outputs/results/            raw CSV results (committed)
+outputs/results/            raw CSVs + provenance JSON (committed); summary/ tables
 outputs/figures/            generated figures (committed)
-outputs/models/             model checkpoints (ignored by git)
-docs/                       architecture.md, methodology.md, complexity_analysis.md, RESULTS.md
+outputs/models/             checkpoints (ignored by git; regenerate with train_dqn)
+docs/                       methodology, architecture, complexity, RESULTS (generated), report
 ```
 
 ## Reproducibility rules
 
-1. Every experimental parameter lives in `configs/`. Library code takes values from the config instead of hardcoding them.
-2. Every random component receives an explicit `np.random.Generator`. Per-run seeds are
-   derived from a master seed with `np.random.SeedSequence.spawn`.
-3. Every result file is saved alongside its resolved config and a hardware snapshot.
-4. Training time, inference time and adaptation cost are always reported separately.
-5. Unrun experiments are marked *pending*. Results that were not measured are never shown.
+1. Every experimental parameter lives in `configs/`. Library code takes values from the config.
+2. Every random component receives an explicit `np.random.Generator`. Seeds are derived with
+   `SeedSequence.spawn`, and train/validation/test maps come from disjoint seed families.
+3. Every result CSV is saved with its resolved config, a hardware snapshot and the git commit.
+4. Training time, evaluation time, inference time and repair cost are reported separately.
+5. Figures and RESULTS.md are generated from CSVs by code. Unrun experiments are marked *pending*.
+
+## Information assumptions (read before comparing numbers)
+
+- Classical planners and Value Iteration receive the **global** occupancy map. VI also knows the slip model.
+- The trained DQN / Double DQN agents use a **local 7×7 egocentric view plus goal direction**
+  (chosen by validation-set model selection, see methodology §4). They see *less* than the planners.
+- DQN training ran on the Apple GPU (MPS). All inference and planning costs were measured on the CPU.

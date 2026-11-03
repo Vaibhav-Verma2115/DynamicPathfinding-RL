@@ -2,9 +2,9 @@
   "experiment": "summary",
   "file": "e2_summary.csv",
   "rows": 36,
-  "git_commit": "f64899b-dirty",
+  "git_commit": "01ba526-dirty",
   "hardware": {
-    "timestamp_utc": "2026-11-03T05:59:34.902966+00:00",
+    "timestamp_utc": "2026-11-03T06:38:46.255196+00:00",
     "python": "3.11.16",
     "platform": "macOS-26.4.1-arm64-arm-64bit",
     "machine": "arm64",

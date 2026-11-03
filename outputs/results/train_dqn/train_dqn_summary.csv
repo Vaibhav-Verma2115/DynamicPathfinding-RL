@@ -1,0 +1,7 @@
+algorithm,train_seed,grid_size,observation,device,train_time_s,eval_time_s,env_steps,gradient_steps,episodes,n_train_maps,n_training_conditions,parameters,converged,episodes_to_convergence,steps_to_convergence,time_to_convergence_s,final_success_rate,final_mean_return
+dqn,0,10,local,mps,1025.7970552119077,188.61969716803287,500000,124501,12173,1000,18,860420,False,,,,0.4,-22.54
+dqn,1,10,local,mps,1300.4362273340812,217.89717566607578,500000,124501,10654,1000,18,860420,False,,,,0.34,-34.4
+dqn,2,10,local,mps,981.603594417029,162.65171116800047,500000,124501,12083,1000,18,860420,False,,,,0.46,-10.94
+double_dqn,0,10,local,mps,530.5357430819713,113.33229899995786,500000,124501,13483,1000,18,860420,False,,,,0.44,-15.14
+double_dqn,1,10,local,mps,532.4462687100022,119.02419287899102,500000,124501,13806,1000,18,860420,False,,,,0.36,-30.68
+double_dqn,2,10,local,mps,532.0108725810715,111.58566545808571,500000,124501,14150,1000,18,860420,False,,,,0.4,-22.7

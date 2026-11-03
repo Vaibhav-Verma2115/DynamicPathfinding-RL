@@ -49,6 +49,12 @@ Admissibility and consistency are checked on an open grid by
   - Worst case (e.g. a wall closing near the goal, invalidating most g-values): can exceed a fresh
     search, because under-consistent cells are expanded twice (raised to ∞, then lowered).
   So D* Lite is not guaranteed to beat a fresh A* search on every change. E3 measures this.
+- **Measured:** the initial D* Lite search expands *every* cell with f = g + h ≤ C*. On 30 × 30 corner-to-corner
+  maps that was 484–652 cells, vs. 77–128 for A* (Stage 9 check). This happens because its termination
+  test waits until key(start) ≤ the top key, and with Manhattan costs many cells tie at f = C*. Its
+  standard tie-break (smaller g, i.e. nearer the goal) does not help it reach the start early. A* stops
+  as soon as the goal is popped, and its tie-break by smaller h does help. So D* Lite pays more
+  up-front, and its value lies in the repairs (E3).
 - The k_m term avoids re-keying the queue (O(|U| log |U|)) every time the agent moves.
 - Implementation note: keys are rounded to 9 decimals. With √2 costs, floating-point rounding
   made mathematically equal keys compare unequal and stopped the search too early (found by

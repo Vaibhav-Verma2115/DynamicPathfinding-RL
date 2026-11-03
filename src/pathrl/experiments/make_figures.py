@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 import pandas as pd
 
@@ -103,6 +104,15 @@ def training_figures(cfg, made, pending):
     _save(fig, "train_dqn_validation_curves", cfg, made)
 
 
+def _interval_axis(ax, intervals) -> None:
+    """Log-scaled change-interval axis with the actual intervals as tick labels, frequent change on the right."""
+    ax.set_xscale("log")
+    ax.set_xticks(sorted(intervals))
+    ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.invert_xaxis()
+
+
 def e3_figures(cfg, made, pending):
     df = load_results(cfg, "e3_dynamic_obstacles", "e3_raw")
     if df is None:
@@ -122,8 +132,7 @@ def e3_figures(cfg, made, pending):
     fig, axes = plt.subplots(1, len(sizes), figsize=(3.0 * len(sizes), 3.0), sharey=True)
     for ax, n in zip(np.atleast_1d(axes), sizes):
         line_ci(ax, cl[cl["grid_size"] == n], "change_interval", "computation_ms", "method", logy=True)
-        ax.set_xscale("log")
-        ax.invert_xaxis()
+        _interval_axis(ax, cl["change_interval"].unique())
         ax.set_title(f"{n} x {n}")
         ax.set_xlabel("Change interval (steps, more frequent to the right)")
     np.atleast_1d(axes)[0].set_ylabel("Planning + repair time per episode (ms)")
@@ -143,8 +152,7 @@ def e3_figures(cfg, made, pending):
                                                 ("success_f", "Success rate", False),
                                                 ("path_cost_ratio", "Path cost / static optimum", False)]):
         line_ci(ax, sub, "change_interval", metric, "method", logy=logy)
-        ax.set_xscale("log")
-        ax.invert_xaxis()
+        _interval_axis(ax, cl["change_interval"].unique())
         ax.set_xlabel("Change interval (steps)")
         ax.set_ylabel(label)
     axes[1].legend(frameon=False, fontsize=7)
@@ -169,8 +177,9 @@ def e3_figures(cfg, made, pending):
     fig, axes = plt.subplots(1, len(show), figsize=(5 * len(show), 3.4), sharey=True)
     for ax, k in zip(np.atleast_1d(axes), show):
         t = table[table["change_interval"] == k]
-        h_max = max(10.0, float(np.nanmax(t["crossover_episodes"].replace(np.inf, np.nan).fillna(0))) * 2.0)
-        h = np.linspace(0, h_max, 200)
+        finite = t["crossover_episodes"].replace(np.inf, np.nan).dropna()
+        h_max = float(finite.max()) * 10.0 if len(finite) else 1e7   # all "never": show a long horizon
+        h = np.geomspace(1.0, max(h_max, 10.0), 200)
         for i, (planner, g) in enumerate(t.groupby("planner")):
             ax.plot(h, h * g["plan_time_per_episode_s"].iloc[0], color=PALETTE[i], label=f"{planner}")
         for j, (rl, g) in enumerate(t.groupby("rl_method")):
@@ -181,6 +190,7 @@ def e3_figures(cfg, made, pending):
                             r["train_time_ci_high"] + h * r["infer_time_per_episode_s"], color=PALETTE[4 + j], alpha=0.12)
         ax.set_xlabel("Deployment horizon H (episodes)")
         ax.set_title(f"Obstacles move every {k} step(s)")
+        ax.set_xscale("log")
         ax.set_yscale("log")
     np.atleast_1d(axes)[0].set_ylabel("Cumulative computation (s)")
     np.atleast_1d(axes)[-1].legend(frameon=False, fontsize=7)
@@ -195,11 +205,17 @@ def e3_figures(cfg, made, pending):
         y = g["crossover_episodes"].replace(np.inf, np.nan)
         ax.plot(g["change_interval"], y, marker=MARKERS_SAFE[i % 8], color=PALETTE[i % 8], label=f"{planner} vs {rl}")
     ax.set_xscale("log")
-    ax.set_yscale("log")
+    if np.isfinite(table["crossover_episodes"]).any():
+        ax.set_yscale("log")
+        ax.legend(frameon=False, fontsize=6)
+    else:
+        # Measured inference per episode >= planning per episode everywhere: H* does not exist
+        ax.text(0.5, 0.5, "H* = never in every condition:\nper-episode inference cost >= per-episode planning cost",
+                transform=ax.transAxes, ha="center", va="center", fontsize=8)
+        ax.set_yticks([])
     ax.invert_xaxis()
     ax.set_xlabel("Change interval (steps, more frequent to the right)")
     ax.set_ylabel("Crossover horizon H* (episodes)")
-    ax.legend(frameon=False, fontsize=6)
     ax.set_title(f"E3 crossover horizon vs change rate ({n} x {n}); missing = never", fontsize=9)
     fig.tight_layout()
     _save(fig, "e3_crossover_horizon", cfg, made)
@@ -230,12 +246,13 @@ def e4_figures(cfg, made, pending):
                         ["success_rate", "mean_return", "mean_collisions", "mean_path_deviation", "mean_steps", "prep_time_s"])
     save_results(summary, cfg, "summary", "e4_summary")
     sizes = sorted(df["grid_size"].unique())
+    methods = sorted(df["method"].unique())
     fig, axes = plt.subplots(len(sizes), 3, figsize=(11, 3.0 * len(sizes)), squeeze=False)
     for row, n in enumerate(sizes):
         sub = df[df["grid_size"] == n]
         for ax, (metric, label) in zip(axes[row], [("success_rate", "Success rate"), ("mean_return", "Mean return"),
                                                     ("mean_collisions", "Collisions per episode")]):
-            line_ci(ax, sub, "slip_prob", metric, "method")
+            line_ci(ax, sub, "slip_prob", metric, "method", order=methods)
             ax.set_xlabel("Slip probability")
             ax.set_ylabel(label)
             ax.set_title(f"{n} x {n}")

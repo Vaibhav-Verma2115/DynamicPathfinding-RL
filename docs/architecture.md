@@ -9,10 +9,10 @@ This document grows with each stage. Only the design decisions that have been im
 | 1 Configuration manager | `pathrl.utils.config`, `configs/*.yaml`, `pathrl.environment.config` | done |
 | 2 GridWorld environment | `pathrl.environment` | done |
 | 3A Classical planning | `pathrl.algorithms.classical` | BFS, Dijkstra, A*, D* Lite done |
-| 3B Learning / model-based | `pathrl.algorithms.model_based`, `pathrl.algorithms.reinforcement_learning` | pending |
+| 3B Learning / model-based | `pathrl.algorithms.model_based`, `pathrl.algorithms.reinforcement_learning` | Value Iteration, Q-Learning, DQN, Double DQN done |
 | 4 Evaluation framework | `pathrl.evaluation` | done: profiling, rollout, navigation, scenarios, results |
-| 5 Analysis & visualization | `pathrl.analysis`, `pathrl.visualization` | grid drawing done |
-| 6 Dashboard & report | `pathrl.dashboard`, `docs/` | pending |
+| 5 Analysis & visualization | `pathrl.analysis`, `pathrl.visualization` | done: statistics, convergence, crossover, figures |
+| 6 Dashboard & report | `pathrl.dashboard`, `docs/` | done: Streamlit app, generated RESULTS.md, report.md |
 
 ## Configuration
 `default.yaml` → experiment file → dotted overrides (`env.grid_size=50`). Unknown keys raise
