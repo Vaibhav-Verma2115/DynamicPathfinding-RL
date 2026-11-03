@@ -1,0 +1,20 @@
+# Core numerics
+numpy>=1.26,<3
+pandas>=2.1
+scipy>=1.11            # t-distribution for 95% confidence intervals
+
+# Reinforcement learning
+torch>=2.2
+gymnasium>=0.29
+
+# Configuration, progress, plotting
+pyyaml>=6.0
+tqdm>=4.66
+matplotlib>=3.8
+seaborn>=0.13
+
+# Testing
+pytest>=8.0
+
+# Optional dashboard (Stage 11)
+streamlit>=1.32

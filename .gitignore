@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Generated experiment artifacts (keep the folders, not the bulk outputs)
+outputs/models/*
+outputs/logs/*
+!outputs/**/.gitkeep
+*.prof
+
+# Demo images are sanity checks, not research figures
+outputs/figures/demo_*

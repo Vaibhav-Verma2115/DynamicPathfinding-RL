@@ -1,0 +1,5 @@
+# Random-walking obstacles: the setting used by E3. E3 sweeps change_interval over 20, 10, 5, 2, 1.
+env:
+  dynamics: random_walk
+  dynamic_obstacle_density: 0.02
+  change_interval: 5

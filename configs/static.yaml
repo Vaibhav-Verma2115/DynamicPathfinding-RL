@@ -1,0 +1,4 @@
+# Static obstacles: the baseline used by E1 and E2.
+env:
+  dynamics: static
+  change_interval: 0

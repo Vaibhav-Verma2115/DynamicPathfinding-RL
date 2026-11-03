@@ -1,0 +1,44 @@
+# Base configuration. Experiment configs in configs/experiments/ override these keys.
+# Nothing in src/ should hardcode an experimental parameter that appears here.
+# The environment rules these keys control are specified in docs/methodology.md.
+
+seed: 0
+num_seeds: 5            # debugging; final experiments use 30
+
+env:
+  # --- map generation ---
+  grid_size: 10                  # N for an N x N grid
+  obstacle_density: 0.15         # fraction of cells that are static walls
+  placement: corners             # corners: start (0,0), goal (N-1,N-1) | random
+  min_start_goal_distance: 0.5   # random placement: Manhattan distance >= this * N
+  require_reachable: true        # reject maps with no 4-connected start->goal path
+  max_generation_attempts: 1000
+
+  # --- moving obstacles ---
+  dynamics: static               # static | random_walk | oscillating_corridor
+  dynamic_obstacle_density: 0.02 # moving obstacles as a fraction of N*N (at least 1)
+  change_interval: 0             # obstacles move every k agent steps (must be >= 1 if not static)
+  oscillation_amplitude: 2       # corridor obstacles slide up to this many cells each side
+
+  # --- agent dynamics ---
+  slip_prob: 0.0                 # chance the action is replaced by a perpendicular one
+  connectivity: 4                # 4 (primary) | 8 (ablation)
+  diagonal_cost: 1.4142135623730951
+  allow_corner_cutting: false    # 8-connected: may a diagonal squeeze between two walls?
+
+  # --- observation and episode ---
+  observation: global            # global: full N x N map | local: egocentric window
+  local_view: 7                  # odd side length of the local window
+  max_steps_factor: 1.0          # episode truncated after factor * N^2 steps
+  terminate_on_collision: false
+
+rewards:
+  step: -1.0
+  collision: -50.0
+  goal: 100.0
+
+paths:
+  results_dir: outputs/results
+  figures_dir: outputs/figures
+  models_dir: outputs/models
+  logs_dir: outputs/logs

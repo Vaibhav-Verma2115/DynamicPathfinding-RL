@@ -1,0 +1,6 @@
+# Small, fast configuration used while developing modules.
+# Experiment configs only list the keys they change from default.yaml.
+num_seeds: 2
+env:
+  grid_size: 10
+  obstacle_density: 0.15

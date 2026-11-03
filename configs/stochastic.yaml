@@ -1,0 +1,4 @@
+# Stochastic transitions: the setting used by E4. E4 sweeps slip_prob over 0.0, 0.1, 0.2.
+env:
+  dynamics: static
+  slip_prob: 0.1

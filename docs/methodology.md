@@ -1,0 +1,102 @@
+# Methodology
+
+This file records the experimental rules as they are implemented. Each section
+names the code that enforces it.
+
+## 1. Environment specification
+
+### 1.1 Grid and coordinates
+- An N × N grid with cells indexed `(row, col)`. Row 0 is the top, so UP decreases the row index.
+- A `GridMap` (`environment/map_generator.py`) fixes the static walls, start, goal and
+  initial moving-obstacle layout. It is immutable, and matched comparisons share the same object.
+
+### 1.2 Map generation (`generate_map`)
+1. Start and goal are placed first:
+   - `corners`: start (0,0), goal (N−1,N−1).
+   - `random`: uniform start, then a goal at Manhattan distance ≥ ⌈`min_start_goal_distance`·N⌉.
+2. Exactly round(`obstacle_density`·N²) walls are sampled uniformly, never on start or goal.
+3. If `require_reachable`, the map is rejected unless BFS finds a **4-connected** start→goal path
+   through static walls. Every 4-path is also an 8-path, so one map set serves both connectivities.
+4. Rejected maps are resampled from the same RNG stream, up to `max_generation_attempts` times.
+   After that, `MapGenerationError` is raised. Generation never loops forever.
+5. The same seed always produces the same map. This is tested.
+
+Because of the rejection step, maps at density 0.30 are a *conditional* sample: random maps,
+**given** that they are solvable. Report this when discussing difficulty.
+
+### 1.3 Actions and movement (`environment/dynamics.py`)
+| Connectivity | Actions | Step cost |
+|---|---|---|
+| 4 (primary) | UP, DOWN, LEFT, RIGHT | 1 |
+| 8 (ablation) | + UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT | √2 (`diagonal_cost`) |
+
+### 1.4 Collision rules (`attempt_move`)
+A move **collides**, and the agent stays in its current cell, if any of these holds:
+1. The target cell is outside the grid.
+2. The target cell holds a static wall.
+3. The target cell holds a moving obstacle (as of the start of the step).
+4. (8-connected, `allow_corner_cutting: false`) The move is diagonal and either orthogonal cell it
+   squeezes past is occupied.
+
+By default a collision does not end the episode (`terminate_on_collision: false`).
+
+### 1.5 Stochastic transitions (slip)
+With probability `slip_prob` the executed move is one of the two moves perpendicular to the
+intended one, each chosen with probability `slip_prob`/2. A slip never reverses the agent. The
+slipped move then follows the same collision rules.
+
+    P(intended) = 1 − p,   P(left of intended) = P(right of intended) = p / 2
+
+Value Iteration (Stage 6) will read this distribution from the same function the environment
+samples from (`action_outcomes` / `sample_delta`), so the planner's model and the real dynamics
+cannot drift apart.
+
+### 1.6 Rewards (`environment/rewards.py`)
+Each step has exactly one outcome:
+
+| Outcome | Reward |
+|---|---|
+| Reached goal | +100 (episode terminates) |
+| Collision | −50 |
+| Normal move | −1 × step cost |
+
+The return of an L-step collision-free optimal path is therefore −(L−1) + 100.
+Episodes are truncated after round(`max_steps_factor`·N²) steps.
+
+### 1.7 Moving obstacles (`environment/obstacles.py`)
+Order within one step: **agent moves → reward → obstacles update (if due) → observation.**
+
+- Obstacles update when `step % change_interval == 0`.
+- An obstacle never enters a wall, the goal, the agent's cell or another obstacle's cell. If its
+  chosen move is invalid, it waits.
+- `random_walk`: round(`dynamic_obstacle_density`·N²) obstacles (at least 1), placed uniformly on free
+  cells. Each picks uniformly from {stay, up, down, left, right}.
+- `oscillating_corridor`: obstacles are placed on cells of the static shortest path. Each slides
+  along a straight track perpendicular to the path, up to `oscillation_amplitude` cells each side,
+  and reverses at the ends. Tracks never overlap and have ≥ 2 cells, so every blocked path cell
+  reopens periodically.
+- **Reachability with moving obstacles:** guaranteed only for the static layer. Moving obstacles can
+  block a route temporarily but never permanently.
+- Each step reports `info["changed_cells"]`, the cells whose occupancy actually changed. This is
+  the information incremental planners use for repair.
+
+### 1.8 Randomness and seeds
+- Map randomness comes from `map_seed`. Episode randomness comes from `reset(seed=...)`, which
+  derives two independent streams: one for slips, one for obstacle moves.
+- **Common random numbers:** every step draws a fixed amount of randomness, whether or not a slip
+  happens and wherever the agent is. Two methods run with the same seed therefore face the same slip
+  draws and the same obstacle proposals. Their environments diverge only where an algorithm's own
+  choices change the outcome, e.g. the agent standing where an obstacle wanted to move. This makes
+  paired comparisons less noisy.
+
+### 1.9 Observations and information access
+| Mode | Tensor | What the agent knows |
+|---|---|---|
+| `global` | 3 × N × N | Full current occupancy (walls + moving obstacles), own position, goal |
+| `local` | 3 × V × V (V=7) | Occupancy within its window (outside the grid = blocked), goal location if visible, otherwise goal **direction** marked on the window border |
+
+Channels: 0 = obstacles, 1 = agent, 2 = goal.
+
+**Information-assumption disclosure:** classical planners (BFS, Dijkstra, A*, D* Lite) are given the
+global occupancy map. Any comparison between a global planner and a `local` RL agent must be labelled
+as using different information. Neither mode exposes *future* obstacle positions.
