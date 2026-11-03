@@ -28,7 +28,7 @@ The crossover point H* is where these two curves intersect, if they intersect at
 | 4 | BFS, Dijkstra, A* | ✅ done |
 | 5 | D* Lite | ✅ done |
 | 6 | Value Iteration, Q-Learning | ✅ done |
-| 7 | DQN, Double DQN | ⏳ pending |
+| 7 | DQN, Double DQN | ✅ done |
 | 8 | Evaluation and profiling framework | ⏳ pending |
 | 9 | Experiments E1–E6 | ⏳ pending |
 | 10 | Statistics and crossover analysis | ⏳ pending |

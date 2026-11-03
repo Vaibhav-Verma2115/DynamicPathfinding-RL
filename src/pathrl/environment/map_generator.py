@@ -72,6 +72,18 @@ class GridMap:
     def size(self) -> int:
         return self.walls.shape[0]
 
+    def with_dynamics(self, dynamics: str) -> "GridMap":
+        """The same walls/start/goal under another obstacle mode, so one map set serves static
+        and random-walk evaluations. Moving obstacles are dropped for 'static'. For 'random_walk'
+        the existing moving-obstacle cells become walkers."""
+        if dynamics == self.dynamics:
+            return self
+        if dynamics == "static":
+            return GridMap(self.walls, self.start, self.goal)
+        if dynamics == "random_walk":
+            return GridMap(self.walls, self.start, self.goal, "random_walk", self.dynamic_init)
+        raise ValueError(f"cannot convert a {self.dynamics!r} map to {dynamics!r} (corridor tracks are map-specific)")
+
     @classmethod
     def from_ascii(cls, text: str) -> "GridMap":
         """Build a map from a drawing: '#' wall, '.' free, 'S' start, 'G' goal, 'o' random walker.

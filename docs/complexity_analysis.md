@@ -67,5 +67,13 @@ Admissibility and consistency are checked on an open grid by
 - Sample complexity (episodes needed) has no simple closed form here. It depends on
   exploration, α, γ and map difficulty, so E6 measures it empirically.
 
-## Pending
-DQN/Double DQN (Stage 7).
+## DQN / Double DQN (`algorithms/reinforcement_learning/dqn.py`)
+- Inference: one CNN forward pass per decision, O(network FLOPs). Independent of how often the map
+  changes. This is what makes amortisation possible.
+- Training: O(total_steps / train_frequency) gradient steps, each costing O(batch × network FLOPs)
+  for the online forward/backward pass plus the target forward pass (Double DQN adds one online
+  forward pass on s′).
+- Memory: replay buffer of 2 × capacity × 3N² bytes (uint8) plus network parameters.
+- Measured on this machine (Stage 7 profiling, cProfile): about 95% of CPU training time is in
+  `learn_step` (convolution forward/backward). The PyTorch CPU build has no MKLDNN on Apple
+  Silicon, so **training uses the MPS GPU and inference benchmarks use the CPU**. See methodology §3.

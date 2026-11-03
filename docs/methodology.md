@@ -116,3 +116,19 @@ Each algorithm family has its own definition. They are deliberately not intercha
   `eval_episodes` episodes. Their time is recorded separately from training time.
 - Runs that never meet the criterion are reported as **non-convergent**, with their final success
   rate. They are never dropped, and never assigned the training budget as a fake convergence point.
+
+## 3. Hardware and measurement protocol
+
+- Classical planners, Value Iteration, Q-Learning and all **inference/action-selection benchmarks**
+  run on the CPU (Apple Silicon, see the hardware JSON next to every result file).
+- **DQN/Double DQN training** runs on the Apple GPU (PyTorch MPS backend). Profiling showed that
+  95% of CPU training time is convolution forward/backward, and this CPU build lacks MKLDNN.
+  MPS training was 4–5× faster in the Stage 7 benchmark.
+  Consequences, disclosed with every training-cost result:
+  - Training wall time is GPU time, and is also reported in machine-independent units (env steps,
+    gradient steps).
+  - Some MPS kernels are non-deterministic. Two training runs with the same seed can differ slightly.
+- Trained checkpoints are loaded on the CPU for inference, so per-decision costs of DQN and the
+  planners are measured on the same processor.
+- Wall-clock times use `time.perf_counter`. tracemalloc measures Python-heap allocations only and
+  misses most PyTorch tensor memory. DQN memory is reported as parameter + replay-buffer bytes.
