@@ -26,7 +26,7 @@ The crossover point H* is where these two curves intersect, if they intersect at
 | 2 | GridWorld and visualization | ✅ done |
 | 3 | Environment tests and Gymnasium integration | ✅ done (merged with Stage 2) |
 | 4 | BFS, Dijkstra, A* | ✅ done |
-| 5 | D* Lite | ⏳ pending |
+| 5 | D* Lite | ✅ done |
 | 6 | Value Iteration, Q-Learning | ⏳ pending |
 | 7 | DQN, Double DQN | ⏳ pending |
 | 8 | Evaluation and profiling framework | ⏳ pending |

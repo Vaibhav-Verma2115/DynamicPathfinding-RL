@@ -8,7 +8,7 @@ This document grows with each stage. Only the design decisions that have been im
 |---|---|---|
 | 1 Configuration manager | `pathrl.utils.config`, `configs/*.yaml`, `pathrl.environment.config` | done |
 | 2 GridWorld environment | `pathrl.environment` | done |
-| 3A Classical planning | `pathrl.algorithms.classical` | BFS, Dijkstra, A* done; D* Lite pending |
+| 3A Classical planning | `pathrl.algorithms.classical` | BFS, Dijkstra, A*, D* Lite done |
 | 3B Learning / model-based | `pathrl.algorithms.model_based`, `pathrl.algorithms.reinforcement_learning` | pending |
 | 4 Evaluation framework | `pathrl.evaluation` | timing/memory (`profiling.py`) done |
 | 5 Analysis & visualization | `pathrl.analysis`, `pathrl.visualization` | grid drawing done |

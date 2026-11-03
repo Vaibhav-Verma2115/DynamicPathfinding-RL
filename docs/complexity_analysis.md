@@ -40,5 +40,19 @@ These are **theoretical** bounds. Measured behaviour is reported only from exper
 Admissibility and consistency are checked on an open grid by
 `tests/test_classical.py::test_heuristics_are_admissible_and_consistent`.
 
+## D* Lite (`algorithms/classical/dstar_lite.py`)
+- Initial search: same worst case as A* (backward from the goal), O((V + E) log V) time, O(V) space.
+  Unlike A*, its g/rhs tables and priority queue are *kept* between calls.
+- Repair after k changed cells: each change triggers O(1) UpdateVertex calls (the 3×3 block).
+  The work then depends on how many cells' cost-to-goal actually changes, not on k or V.
+  - Best case (change far from the optimal route, or behind the agent): near-zero expansions.
+  - Worst case (e.g. a wall closing near the goal, invalidating most g-values): can exceed a fresh
+    search, because under-consistent cells are expanded twice (raised to ∞, then lowered).
+  So D* Lite is not guaranteed to beat a fresh A* search on every change. E3 measures this.
+- The k_m term avoids re-keying the queue (O(|U| log |U|)) every time the agent moves.
+- Implementation note: keys are rounded to 9 decimals. With √2 costs, floating-point rounding
+  made mathematically equal keys compare unequal and stopped the search too early (found by
+  `tests/test_dstar_lite.py`).
+
 ## Pending
-D* Lite (Stage 5), Value Iteration and Q-Learning (Stage 6), DQN/Double DQN (Stage 7).
+Value Iteration and Q-Learning (Stage 6), DQN/Double DQN (Stage 7).

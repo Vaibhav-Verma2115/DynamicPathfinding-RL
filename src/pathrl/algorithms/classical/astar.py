@@ -48,25 +48,28 @@ def octile(a: Cell, b: Cell, diagonal_cost: float = math.sqrt(2)) -> float:
 HEURISTICS = {"zero": zero, "manhattan": manhattan, "octile": octile}
 
 
+def make_heuristic(graph: GridGraph, name: str = "auto") -> tuple[str, Heuristic]:
+    """Resolve a heuristic name for this graph. 'auto' = Manhattan (4-conn) or octile (8-conn)."""
+    if name == "auto":
+        name = "manhattan" if graph.connectivity == 4 else "octile"
+    if name not in HEURISTICS:
+        raise ValueError(f"heuristic must be one of {sorted(HEURISTICS)} or 'auto'")
+    if name == "octile":
+        d = graph.diagonal_cost
+        return name, lambda a, b: octile(a, b, d)
+    return name, HEURISTICS[name]
+
+
 class AStar(Planner):
     name = "astar"
 
     def __init__(self, graph: GridGraph | None = None, heuristic: str = "auto", weight: float = 1.0,
                  record_expanded: bool = False):
         super().__init__(graph, record_expanded)
-        if heuristic == "auto":
-            heuristic = "manhattan" if self.graph.connectivity == 4 else "octile"
-        if heuristic not in HEURISTICS:
-            raise ValueError(f"heuristic must be one of {sorted(HEURISTICS)} or 'auto'")
         if weight < 1.0:
             raise ValueError("weight must be >= 1")
-        self.heuristic_name = heuristic
+        self.heuristic_name, self._h = make_heuristic(self.graph, heuristic)
         self.weight = weight
-        if heuristic == "octile":
-            d = self.graph.diagonal_cost
-            self._h: Heuristic = lambda a, b: octile(a, b, d)
-        else:
-            self._h = HEURISTICS[heuristic]
 
     @property
     def admissible(self) -> bool:

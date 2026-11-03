@@ -9,9 +9,9 @@ def make_planner(name: str, env_cfg=None, **kwargs) -> Planner:
 
     Examples: make_planner("astar", cfg, heuristic="manhattan", weight=1.5)
     """
-    from pathrl.algorithms.classical import BFS, AStar, Dijkstra
+    from pathrl.algorithms.classical import BFS, AStar, Dijkstra, DStarLite
 
-    registry = {"bfs": BFS, "dijkstra": Dijkstra, "astar": AStar}
+    registry = {"bfs": BFS, "dijkstra": Dijkstra, "astar": AStar, "dstar_lite": DStarLite}
     if name not in registry:
         raise ValueError(f"unknown planner {name!r}; available: {sorted(registry)}")
     graph = GridGraph.from_env_config(env_cfg) if env_cfg is not None else GridGraph()

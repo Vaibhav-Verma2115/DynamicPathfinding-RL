@@ -25,6 +25,15 @@ class SearchStats:
     pops: int = 0             # removals, including stale heap entries that are skipped
     max_frontier: int = 0     # largest queue / heap size (proxy for memory)
     states_touched: int = 0   # distinct states that received a cost/parent entry
+    vertex_updates: int = 0   # D* Lite UpdateVertex calls (0 for non-incremental planners)
+
+    def add(self, other: "SearchStats") -> None:
+        """Accumulate another call's counters (max_frontier and states_touched take the maximum)."""
+        for key, value in other.__dict__.items():
+            if key in ("max_frontier", "states_touched"):
+                setattr(self, key, max(getattr(self, key), value))
+            else:
+                setattr(self, key, getattr(self, key) + value)
 
     def as_dict(self) -> dict:
         return dict(self.__dict__)
