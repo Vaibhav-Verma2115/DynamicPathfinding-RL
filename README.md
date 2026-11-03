@@ -29,7 +29,7 @@ The crossover point H* is where these two curves intersect, if they intersect at
 | 5 | D* Lite | ✅ done |
 | 6 | Value Iteration, Q-Learning | ✅ done |
 | 7 | DQN, Double DQN | ✅ done |
-| 8 | Evaluation and profiling framework | ⏳ pending |
+| 8 | Evaluation and profiling framework | ✅ done |
 | 9 | Experiments E1–E6 | ⏳ pending |
 | 10 | Statistics and crossover analysis | ⏳ pending |
 | 11 | Streamlit dashboard | ⏳ pending |

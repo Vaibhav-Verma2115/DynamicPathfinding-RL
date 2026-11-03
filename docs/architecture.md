@@ -10,7 +10,7 @@ This document grows with each stage. Only the design decisions that have been im
 | 2 GridWorld environment | `pathrl.environment` | done |
 | 3A Classical planning | `pathrl.algorithms.classical` | BFS, Dijkstra, A*, D* Lite done |
 | 3B Learning / model-based | `pathrl.algorithms.model_based`, `pathrl.algorithms.reinforcement_learning` | pending |
-| 4 Evaluation framework | `pathrl.evaluation` | timing/memory (`profiling.py`) done |
+| 4 Evaluation framework | `pathrl.evaluation` | done: profiling, rollout, navigation, scenarios, results |
 | 5 Analysis & visualization | `pathrl.analysis`, `pathrl.visualization` | grid drawing done |
 | 6 Dashboard & report | `pathrl.dashboard`, `docs/` | pending |
 
