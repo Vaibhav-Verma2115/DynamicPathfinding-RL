@@ -19,6 +19,10 @@ Other ingredients:
   * epsilon-greedy exploration with linear decay
   * Huber (smooth L1) loss: quadratic for small errors, linear for large ones, so a few
     -50 collision surprises cannot produce huge gradients
+  * reward scaling (reward_scale, default 0.01) inside the learner only. Multiplying all rewards
+    by a positive constant multiplies Q* by the same constant, so the optimal policy is unchanged.
+    It keeps TD errors near the Huber loss's quadratic region (|error| < 1) instead of hundreds.
+    Returns reported anywhere in the project are always in original, unscaled units.
   * Adam optimiser, gradient-norm clipping
 
 Training and acting are separate: `act` runs the network in inference mode only.
@@ -71,6 +75,7 @@ class DQNConfig:
     epsilon_end: float = 0.05
     epsilon_decay_fraction: float = 0.5
     max_grad_norm: float = 10.0
+    reward_scale: float = 0.01
     device: str = "auto"
 
     @classmethod
@@ -117,7 +122,7 @@ class DQN(LearnedPolicy):
             next_q = self.target(next_obs).gather(1, best).squeeze(1)   # target network evaluates
         else:
             next_q = self.target(next_obs).max(dim=1).values            # target selects and evaluates
-        return rewards + self.config.gamma * (1.0 - terminated) * next_q
+        return rewards * self.config.reward_scale + self.config.gamma * (1.0 - terminated) * next_q
 
     def learn_step(self, buffer: ReplayBuffer) -> float:
         obs, actions, rewards, next_obs, terminated = (

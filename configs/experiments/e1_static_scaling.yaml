@@ -1,0 +1,11 @@
+# E1 - Static scaling: how do BFS, Dijkstra, A* and D* Lite scale with grid size?
+num_seeds: 30
+env:
+  placement: corners
+  dynamics: static
+e1:
+  grid_sizes: [10, 20, 30, 50, 70, 100]
+  densities: [0.15, 0.30]
+  planners: [bfs, dijkstra, astar, dstar_lite]
+  timing_repeats: 5         # wall time = median of 5 calls; memory = 1 separate tracemalloc call
+  map_offset: 10000         # map seeds family

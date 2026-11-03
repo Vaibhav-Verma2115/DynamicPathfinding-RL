@@ -60,6 +60,7 @@ rl:
     epsilon_end: 0.05
     epsilon_decay_fraction: 0.5
     max_grad_norm: 10.0
+    reward_scale: 0.01       # learner-internal; policy-invariant; reported returns are unscaled
     device: auto             # training device: auto (mps/cuda if available) | cpu | mps | cuda
                              # inference benchmarks always load checkpoints on CPU
   evaluation:

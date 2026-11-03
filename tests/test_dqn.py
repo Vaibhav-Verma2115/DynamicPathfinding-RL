@@ -32,7 +32,7 @@ def test_replay_buffer_overwrites_oldest_and_samples_shapes():
 
 
 def _agents():
-    cfg = DQNConfig(gamma=0.9, device="cpu")
+    cfg = DQNConfig(gamma=0.9, reward_scale=1.0, device="cpu")
     return DQN((3, 5, 5), 4, cfg, seed=0), DoubleDQN((3, 5, 5), 4, cfg, seed=0)
 
 

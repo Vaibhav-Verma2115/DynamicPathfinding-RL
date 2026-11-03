@@ -1,0 +1,25 @@
+# E3 - Dynamic obstacles: repeated A* vs D* Lite vs trained DQN / Double DQN.
+# Test maps come from a seed family never used in training (train_dqn uses offset 1000).
+num_seeds: 30
+env:
+  grid_size: 10
+  obstacle_density: 0.15
+  placement: random
+  min_start_goal_distance: 0.5
+  dynamics: random_walk
+  dynamic_obstacle_density: 0.05
+  change_interval: 1
+
+e3:
+  classical_grid_sizes: [10, 20, 30, 50]
+  rl_grid_size: 10                       # DQN checkpoints exist only for this size
+  change_intervals: [20, 10, 5, 2, 1]
+  planners:
+    - {label: "A* (replan on change)", planner: astar, replan: on_change}
+    - {label: "A* (replan when blocked)", planner: astar, replan: on_block}
+    - {label: "D* Lite", planner: dstar_lite, replan: on_change}
+  rl_algorithms: [dqn, double_dqn]
+  rl_training_seeds: 3
+  rl_observation: local                  # observation mode of the trained checkpoints (model selection)
+  test_map_offset: 20000
+  train_config: configs/experiments/train_dqn.yaml   # where the checkpoints / training costs come from

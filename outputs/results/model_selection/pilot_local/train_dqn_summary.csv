@@ -1,0 +1,2 @@
+algorithm,train_seed,grid_size,observation,device,train_time_s,eval_time_s,env_steps,gradient_steps,episodes,n_train_maps,n_training_conditions,parameters,converged,episodes_to_convergence,steps_to_convergence,time_to_convergence_s,final_success_rate,final_mean_return
+dqn,0,10,local,mps,148.9661597089871,24.17191379200085,150000,37001,2096,1000,18,860420,False,,,,0.22,-57.4

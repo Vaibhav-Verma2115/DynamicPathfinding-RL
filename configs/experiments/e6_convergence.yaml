@@ -1,0 +1,39 @@
+# E6 - Convergence analysis and learning-rate sensitivity.
+# Each run learns ONE fixed map (static, no slip), so convergence measures learning speed,
+# not generalization (E5 covers that).
+env:
+  placement: corners
+  dynamics: static
+  slip_prob: 0.0
+
+e6:
+  map_offset: 50000
+
+  value_iteration:
+    grid_sizes: [10, 20, 30, 50, 70, 100]
+    densities: [0.15, 0.30]
+    slip_probs: [0.0, 0.1, 0.2]
+    seeds: 10
+    residual_curve_seeds: 1      # store full residual-per-sweep curves for this many seeds
+
+  q_learning:
+    grid_sizes: [10, 20, 30, 50, 70, 100]
+    density: 0.15
+    learning_rates: [0.01, 0.05, 0.1, 0.3, 0.5]
+    seeds: 5
+    episodes: 3000
+    eval_interval: 25
+    eval_episodes: 1             # static map, no slip: the greedy policy is deterministic
+
+  dqn:
+    algorithms: [dqn, double_dqn]
+    grid_sizes: [10, 20]          # 30-100 not run: compute budget (reported as pending)
+    density: 0.15
+    learning_rates: [0.0001, 0.0005, 0.001, 0.005]
+    seeds: 3
+    total_steps: {10: 40000, 20: 80000}
+    eval_interval: 10
+    eval_episodes: 1
+    device: cpu                   # parallel CPU workers (1 thread each) are faster here than one GPU stream
+    learning_starts: 1000
+    target_update_interval: 1000

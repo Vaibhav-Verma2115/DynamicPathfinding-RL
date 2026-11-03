@@ -1,0 +1,22 @@
+# E4 - Stochastic transitions (slip): classical replanning vs model-aware VI vs Q-Learning vs DQN.
+num_seeds: 30
+env:
+  obstacle_density: 0.15
+  placement: random
+  min_start_goal_distance: 0.5
+  dynamics: static
+  max_steps_factor: 2.0       # slips lengthen paths; avoid truncating successful-but-slow runs
+
+e4:
+  grid_sizes: [10, 20]
+  slip_probs: [0.0, 0.1, 0.2]
+  episodes_per_map: 20        # every method gets the same 20 episode seeds on each map
+  planners:
+    - {label: "A* (replan)", planner: astar}
+    - {label: "D* Lite", planner: dstar_lite}
+  q_learning_episodes: 3000   # Q-Learning is trained on each test map (model-free, per map)
+  rl_grid_size: 10
+  rl_algorithms: [dqn, double_dqn]
+  rl_training_seeds: 3
+  rl_observation: local
+  test_map_offset: 30000

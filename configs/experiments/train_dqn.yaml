@@ -1,0 +1,33 @@
+# Training of the "generalist" DQN / Double DQN agents used by E3, E4 and E5.
+# One network per (algorithm, training seed), trained on a mixture of conditions so a single
+# policy is evaluated zero-shot on unseen test maps, change rates and slip levels.
+seed: 0
+env:
+  grid_size: 10
+  obstacle_density: 0.15
+  placement: random
+  min_start_goal_distance: 0.5
+  dynamic_obstacle_density: 0.05
+  observation: local          # chosen by model selection on validation maps (docs/methodology.md section 4)
+
+train_dqn:
+  algorithms: [dqn, double_dqn]
+  training_seeds: 3
+  n_train_maps: 1000
+  train_map_offset: 1000      # map seeds derived from seed + offset (test maps use other offsets)
+  validation_map_offset: 3000
+  n_validation_maps: 50
+  # Each training episode samples one map and one of these conditions:
+  dynamics: [static, random_walk]
+  change_intervals: [1, 2, 5, 10, 20]   # used for random_walk
+  slip_probs: [0.0, 0.1, 0.2]
+  validation_eval_episodes: 50          # greedy episodes on validation maps per evaluation
+
+rl:
+  dqn:
+    total_steps: 500000
+    learning_rate: 0.0005
+    target_update_interval: 2000
+    epsilon_decay_fraction: 0.2   # epsilon reaches 0.05 after 100k steps
+  evaluation:
+    eval_interval: 200

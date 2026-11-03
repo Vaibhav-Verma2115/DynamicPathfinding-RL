@@ -1,0 +1,18 @@
+# E5 - Generalization: zero-shot success of the generalist DQN / Double DQN on unseen maps.
+env:
+  grid_size: 10
+  obstacle_density: 0.15
+  placement: random
+  min_start_goal_distance: 0.5
+  dynamics: static
+  slip_prob: 0.0
+  dynamic_obstacle_density: 0.05
+
+e5:
+  rl_algorithms: [dqn, double_dqn]
+  rl_training_seeds: 3
+  rl_observation: local
+  n_test_maps: 500
+  test_map_offset: 40000         # unseen family (training maps: offset 1000)
+  n_train_maps_eval: 500         # also evaluate on a subset of the TRAINING maps -> generalization gap
+  train_config: configs/experiments/train_dqn.yaml
