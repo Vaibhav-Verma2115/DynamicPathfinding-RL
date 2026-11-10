@@ -2,8 +2,8 @@
 
 For every (grid size, change interval, test seed): one unseen map with random-walking
 obstacles. Every method runs one episode on it with the SAME episode seed, so all methods
-face the same obstacle proposals (common random numbers). Information assumption: all
-methods observe the full current occupancy grid (global observation).
+face the same obstacle proposals (common random numbers). Information assumption: planners
+observe the full current occupancy grid; RL policies observe `rl_observation` (local 7 x 7 view).
 
 Per episode we record success, path cost, collisions, and computation:
   planners: initial plan time + repair/replan time, expansions, replans

@@ -72,7 +72,7 @@ The local view was chosen by model selection on validation maps, not by the test
   keys rounded to 9 decimals). Under dynamics, A* either *replans on every change* or *replans
   only when the next cell is blocked*. D* Lite repairs incrementally.
 - **Learning.** Value Iteration with residual θ = 1e-6. Tabular Q-Learning. DQN / Double DQN with
-  a CNN of 1.7 M parameters at N = 10, a 100k uint8 replay buffer, Huber loss, Adam and hard target
+  a CNN (860,420 parameters for the 7 × 7 local view used by the generalists), a 100k uint8 replay buffer, Huber loss, Adam and hard target
   updates, reward scale 0.01.
 - **Generalists** (shared by E3–E5): 3 seeds × {DQN, Double DQN}, 500k environment steps each,
   sampled from 1000 training maps × {static, random walk (k ∈ {1, 2, 5, 10, 20})} × slip
@@ -185,19 +185,21 @@ still. Training cost never comes into play. The cumulative-cost figure plots bot
 to H = 10⁷ episodes: the RL line stays above every planner line throughout and runs parallel to
 them on the log–log plot, so they never meet.
 
-**Where the comparison could change (cost only).** Forward-pass times of the same CNN
-architecture (untrained, measured on CPU) at larger N, compared with measured planner costs per
-decision at k = 1:
+**Where the comparison could change (cost only).** Forward-pass times of the *global-view*
+variant of the CNN (N × N input; untrained, measured on CPU), compared with measured planner costs
+per decision at k = 1. Note that the trained generalists use the 7 × 7 local view, so their
+network is identical at every N; its forward pass was measured in E3 at ≈0.099 ms per decision:
 
-| N | CNN forward pass | D* Lite repair | A* replan on change |
+| N | global-view CNN forward pass | D* Lite repair | A* replan on change |
 |---|---|---|---|
 | 10 | 0.127 ms | 0.083 ms | 0.0097 ms |
 | 20 | 0.091 ms | 0.269 ms | 0.020 ms |
 | 30 | 0.152 ms | 0.574 ms | 0.037 ms |
 | 50 | 0.347 ms | 1.61 ms | 0.072 ms |
 
-For N ≥ 20, a forward pass is cheaper per decision than a D* Lite repair in this implementation.
-It is never cheaper than A* (either replanning policy) at any measured size. A crossover against
+For N ≥ 20, a global-view forward pass is cheaper per decision than a D* Lite repair in this
+implementation, and so is the fixed-size local-view network (≈0.099 ms, which by construction does
+not grow with N). Neither is cheaper than A* (either replanning policy) at any measured size. A crossover against
 D* Lite is therefore arithmetically *possible* at N ≥ 20. It would require a policy that succeeds
 at those sizes with paths not much longer than optimal. No such policy was trained, and E6 shows
 fixed-map DQN failing to converge at N = 20. This is **pending**, not a finding.

@@ -19,3 +19,8 @@ outputs/logs/*
 
 # Demo images are sanity checks, not research figures
 outputs/figures/demo_*
+
+# generated study-guide HTML (absolute file:// image paths); the PDF is committed
+docs/guide/guide.html
+# live runs from the Streamlit dashboard (personal, not experiment results)
+outputs/results/dashboard/
