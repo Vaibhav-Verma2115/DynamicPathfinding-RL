@@ -19,16 +19,16 @@ def _app():
 
 def test_dashboard_loads():
     at = _app()
-    assert at.title[0].value == "DynamicPathfinding-RL"
-    assert len(at.tabs) == 4
+    assert any("Plan the path." in m.value for m in at.markdown)
+    assert len(at.tabs) == 5
 
 
 def test_simulator_and_comparison_buttons_run():
     at = _app()
-    at.button[0].click().run()   # Run episode
+    at.button(key="run_episode").click().run()
     assert not at.exception, at.exception
     assert any(m.label == "Outcome" for m in at.metric)
-    at.button[1].click().run()   # Compare planners
+    at.button(key="compare").click().run()
     assert not at.exception, at.exception
     assert len(at.dataframe) >= 1
 
@@ -37,8 +37,8 @@ def test_live_q_learning_run(tmp_path, monkeypatch):
     log = tmp_path / "runs.csv"
     monkeypatch.setenv("PATHRL_DASHBOARD_LOG", str(log))  # never write test runs into outputs/results
     at = _app()
-    at.number_input[1].set_value(300).run()   # small episode budget
-    at.button[2].click().run()                # Run experiment (Q-Learning default)
+    at.number_input(key="budget").set_value(300).run()   # small episode budget
+    at.button(key="train").click().run()       # Train (Q-Learning default)
     assert not at.exception, at.exception
     assert any(m.label == "Converged" for m in at.metric)
     assert log.exists() and len(log.read_text().splitlines()) == 2  # header + this run
