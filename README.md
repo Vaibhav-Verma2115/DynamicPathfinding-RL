@@ -17,7 +17,7 @@ C_planning(H) = C_initial  + Σ_{i=1..H} C_repair(i)        crossover H*: C_RL(H
 
 H* is a *computational* break-even point. Success rate and path quality are always reported beside it.
 
-**Live app:** _link added after deployment_ · **Course:** Analysis and Design of Algorithms (ADA)
+**Live app:** https://plan-or-learn.streamlit.app · **Source:** https://github.com/Vaibhav-Verma2115/DynamicPathfinding-RL · **Course:** Analysis and Design of Algorithms (ADA)
 
 - **Results (numbers):** [docs/RESULTS.md](docs/RESULTS.md), generated from the CSVs
 - **Report (interpretation, limitations):** [docs/report.md](docs/report.md)
