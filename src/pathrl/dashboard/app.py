@@ -11,9 +11,12 @@ or hard-coded.
 from __future__ import annotations
 
 import os
+import sys
 import time
 from dataclasses import replace
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # src/: run from a fresh clone (e.g. Streamlit Cloud)
 
 import matplotlib
 

@@ -3,7 +3,8 @@ numpy>=1.26,<3
 pandas>=2.1
 scipy>=1.11            # t-distribution for 95% confidence intervals
 
-# Reinforcement learning
+# Reinforcement learning (CPU wheels keep cloud installs small; Apple GPU/MPS still works on macOS)
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.2
 gymnasium>=0.29
 

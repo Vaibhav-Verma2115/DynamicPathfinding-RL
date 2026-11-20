@@ -17,10 +17,53 @@ C_planning(H) = C_initial  + Σ_{i=1..H} C_repair(i)        crossover H*: C_RL(H
 
 H* is a *computational* break-even point. Success rate and path quality are always reported beside it.
 
+**Live app:** _link added after deployment_ · **Course:** Analysis and Design of Algorithms (ADA)
+
 - **Results (numbers):** [docs/RESULTS.md](docs/RESULTS.md), generated from the CSVs
 - **Report (interpretation, limitations):** [docs/report.md](docs/report.md)
 - **Methodology / rules / information assumptions:** [docs/methodology.md](docs/methodology.md)
 - **Architecture:** [docs/architecture.md](docs/architecture.md) · **Complexity:** [docs/complexity_analysis.md](docs/complexity_analysis.md)
+
+## Tech stack
+
+| Area | Tools |
+|---|---|
+| Language | Python 3.11 |
+| Algorithms and grids | NumPy (BFS, Dijkstra, A*, D* Lite, Value Iteration, Q-Learning written from scratch) |
+| Deep RL | PyTorch (DQN, Double DQN), Gymnasium environment API |
+| Analysis and plots | pandas, SciPy (95% confidence intervals), Matplotlib, seaborn |
+| Web app | Streamlit |
+| Testing | pytest (~160 tests) |
+
+## Run the web app locally (step by step)
+
+1. Install Python 3.11 and Git.
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/Vaibhav-Verma2115/DynamicPathfinding-RL.git
+   cd DynamicPathfinding-RL
+   ```
+3. Create and activate a virtual environment:
+   ```bash
+   python3.11 -m venv .venv
+   source .venv/bin/activate          # Windows: .venv\Scripts\activate
+   ```
+4. Install the dependencies:
+   ```bash
+   pip install -r requirements.txt -e .
+   ```
+5. Start the dashboard and open the address it prints (usually http://localhost:8501):
+   ```bash
+   streamlit run src/pathrl/dashboard/app.py
+   ```
+
+**Login and secrets:** the app has no user accounts, so no demo credentials are needed. It uses no API keys
+or environment variables, so there is no `.env` file. The optional `PATHRL_DASHBOARD_LOG` variable only
+changes where live training runs are logged.
+
+**Using the app:** build a map (01), watch one planner cross it (02), compare all planners on it (03),
+train an AI agent live (04), see planning vs. learning side by side (05), and browse all experiment
+graphs (06). Everything is computed live or loaded from the experiment CSVs in `outputs/results`.
 
 ## Status
 
