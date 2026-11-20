@@ -247,7 +247,7 @@ with tab_cmp:
             st.markdown(f'<div class="takeaway">A* checked <b>{checked["A*"]}</b> cells; Dijkstra checked '
                         f'<b>{checked["Dijkstra"]}</b>, so A* did <b>{checked["Dijkstra"] / checked["A*"]:.1f}× less work</b> '
                         f'for a route of the same length.</div>', unsafe_allow_html=True)
-        st.dataframe(table, hide_index=True, use_container_width=True)
+        st.dataframe(table, hide_index=True, width="stretch")
         fig, axes = plt.subplots(2, 3, figsize=(12, 8))
         for ax, (label, res) in zip(axes.ravel(), results):
             draw_grid(ax, grid_map, path=res.path, explored=res.expanded, legend=False,
@@ -344,7 +344,7 @@ with tab_rl:
             table = sub.groupby(["learning_rate", "grid_size"]).agg(
                 converged=("converged", "mean"), episodes_to_convergence=("episodes_to_convergence", "mean"),
                 final_success=("final_success_rate", "mean"), runs=("seed_index", "count")).reset_index()
-            st.dataframe(table, hide_index=True, use_container_width=True)
+            st.dataframe(table, hide_index=True, width="stretch")
             for name in [f"e6_{algo_pick}_reward_curves", f"e6_{algo_pick}_success_curves"]:
                 if (FIGURES / f"{name}.png").exists():
                     st.image(str(FIGURES / f"{name}.png"))
@@ -420,7 +420,7 @@ with tab_vs:
             "Time per move (ms)": [span(r.t_lo, r.t_hi, "{:.3f}") for r in rows.itertuples()],
             "Training (min)": [f"{train[m] / 60:.0f}" if m in train.index else "none" for m in rows.index],
         }).sort_values("Type", ascending=False)
-        st.dataframe(table, hide_index=True, use_container_width=True)
+        st.dataframe(table, hide_index=True, width="stretch")
 
         c1, c2 = st.columns(2, gap="large")
         with c1:
@@ -478,5 +478,5 @@ with tab_res:
         with st.expander("Summary tables (mean, 95% confidence interval)"):
             pick = st.selectbox("Table", sorted(p.name for p in summary_dir.glob("*.csv")))
             df = pd.read_csv(summary_dir / pick)
-            st.dataframe(df, hide_index=True, use_container_width=True)
+            st.dataframe(df, hide_index=True, width="stretch")
             st.download_button("Download CSV", df.to_csv(index=False), file_name=pick)
